@@ -2,7 +2,7 @@
 
 # journal-lite
 
-A simple journaling app that allows you to write and save journal entries. The goal was to build an entire full-stack app with one executable.
+A simple journaling app that allows you to write and save journal entries. The goal was to build an entire full-stack, server-side rendered app with one executable.
 
 Built with:
 
