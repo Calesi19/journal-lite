@@ -13,6 +13,8 @@ Built with:
 
 ## Deploy as Container
 
+For a quick deployment, you can run the Docker image from GitHub Container Registry.
+
 ```bash
 docker run -p 8080:8080 ghcr.io/calesi19/journal-lite:latest
 ```
