@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-const secret = "your-secret-key" // Use the same key as in LoginHandler
+const secret = "your-super-duper-secret-magic-key-of-power"
 
 func Test(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -56,7 +56,6 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.JSON(http.StatusUnauthorized, res)
 		}
 
-		// Store userId in the context for every handler to access
 		c.Set("userId", userId)
 
 		return next(c)
