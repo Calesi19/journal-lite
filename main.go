@@ -7,6 +7,7 @@ import (
 	"journal-lite/internal/accounts"
 	"journal-lite/internal/auth"
 	"journal-lite/internal/database"
+	"journal-lite/internal/health"
 	"journal-lite/internal/posts"
 	"net/http"
 	"strconv"
@@ -202,13 +203,7 @@ func main() {
 		return c.Render(200, "edit-post", nil)
 	})
 
-	e.GET("health", func(c echo.Context) error {
-		response := map[string]string{
-			"status": "healthy",
-		}
-
-		return c.JSON(200, response)
-	})
+	e.GET("health", health.HealthCheckHandler(database.Db))
 
 	e.POST("/login", func(c echo.Context) error {
 		username := c.FormValue("username")
