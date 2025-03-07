@@ -71,10 +71,7 @@ func Initialize() error {
 	return initErr
 }
 
-// initializeLocalDB creates necessary tables in the local database
 func initializeLocalDB(db *sql.DB) error {
-	// Add your table creation statements here
-	// Example:
 	_, err := db.Exec(`
 			CREATE TABLE IF NOT EXISTS accounts (
     		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -102,7 +99,6 @@ func initializeLocalDB(db *sql.DB) error {
 	return nil
 }
 
-// CloseDB closes the global database connection if open.
 func CloseDB() error {
 	if Db != nil {
 		return Db.Close()

@@ -9,10 +9,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const secret = "your-secret-key"
+const SecretKey = "your-super-duper-secret-magic-key-of-power"
 
 type Account struct {
-	Id           string
+	Id           float64
 	Username     string
 	PasswordHash string
 }
@@ -72,13 +72,13 @@ func generateBearerToken(account Account) (string, error) {
 	claims := jwt.MapClaims{
 		"accountId": account.Id,
 		"username":  account.Username,
-		"exp":       time.Now().Add(time.Minute * 5).Unix(),
+		"exp":       time.Now().Add(time.Hour * 5).Unix(),
 		"iat":       time.Now().Unix(),
 		"iss":       "journal-lite",
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	bearerToken, err := token.SignedString([]byte(secret))
+	bearerToken, err := token.SignedString([]byte(SecretKey))
 	if err != nil {
 		return "", err
 	}
@@ -96,7 +96,7 @@ func generateRefreshToken(account Account) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	refreshToken, err := token.SignedString([]byte(secret))
+	refreshToken, err := token.SignedString([]byte(SecretKey))
 	if err != nil {
 		return "", err
 	}

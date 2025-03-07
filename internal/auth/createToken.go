@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -32,7 +32,7 @@ func RefreshTokenHandler() echo.HandlerFunc {
 			req.RefreshToken,
 			claims,
 			func(token *jwt.Token) (interface{}, error) {
-				return []byte(secret), nil
+				return []byte(SecretKey), nil
 			},
 		)
 
@@ -48,7 +48,7 @@ func RefreshTokenHandler() echo.HandlerFunc {
 			})
 		}
 
-		account.Id = claims["accountId"].(string)
+		account.Id = claims["accountId"].(float64)
 		account.Username = claims["email"].(string)
 
 		bearerToken, err := generateBearerToken(account)

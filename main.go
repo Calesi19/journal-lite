@@ -51,8 +51,13 @@ func main() {
 		return c.Render(200, "index", nil)
 	})
 
-	e.GET("/feed", func(c echo.Context) error {
-		posts, err := GetPostsByAccountID(1)
+	protected := e.Group("/app", auth.ValidateToken)
+
+	protected.GET("/feed", func(c echo.Context) error {
+
+		accountId := c.Get("accountId").(float64)
+
+		posts, err := GetPostsByAccountID(accountId)
 		if err != nil {
 			posts = []Post{}
 		}
@@ -226,7 +231,7 @@ func main() {
 				Expires:  time.Now().Add(24 * time.Hour),
 				Path:     "/",
 				HttpOnly: true,
-				Secure:   true,
+				Secure:   false,
 			}
 			refreshCookie := http.Cookie{
 				Name:     "refreshToken",
@@ -234,14 +239,14 @@ func main() {
 				Expires:  time.Now().Add(3 * 24 * time.Hour),
 				Path:     "/",
 				HttpOnly: true,
-				Secure:   true,
+				Secure:   false,
 				SameSite: http.SameSiteStrictMode,
 			}
 
 			c.SetCookie(&bearerCookie)
 			c.SetCookie(&refreshCookie)
 
-			return c.Redirect(http.StatusFound, "/feed")
+			return c.Redirect(http.StatusFound, "/app/feed")
 		}
 
 		message := LoginBoxMessage{
@@ -289,7 +294,7 @@ type LoginBoxMessage struct {
 	Message          string
 }
 
-func GetPostsByAccountID(accountID int) ([]Post, error) {
+func GetPostsByAccountID(accountID float64) ([]Post, error) {
 	if database.Db == nil {
 		return nil, fmt.Errorf("database not initialized")
 	}
