@@ -2,17 +2,32 @@
 <dialog open>
   <article>
     <header>
-      <button aria-label="Close" rel="prev" hx-get="/close-modal" hx-target="#modal"></button>
+      <button
+        aria-label="Close"
+        rel="prev"
+        hx-get="/close-modal"
+        hx-target="#modal"
+      ></button>
       <h2>Edit Post</h2>
     </header>
     <form id="edit-form">
       <textarea name="content" rows="7">{{ .Content }}</textarea>
       <footer>
-        <input type="button" class="outline" value="Discard Changes" hx-get="/close-modal" hx-target="#modal"/>
-        <button type="submit" 
-                hx-patch="/posts/{{ .Id }}" 
-                hx-target="#modal"
-                hx-include="#edit-form">Save Changes</button>
+        <input
+          type="button"
+          class="outline"
+          value="Discard Changes"
+          hx-get="/close-modal"
+          hx-target="#modal"
+        />
+        <button
+          type="submit"
+          hx-patch="app/posts/{{ .Id }}"
+          hx-target="#modal"
+          hx-include="#edit-form"
+        >
+          Save Changes
+        </button>
       </footer>
     </form>
   </article>

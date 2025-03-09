@@ -2,13 +2,13 @@
 <header>
   <nav>
     <ul>
-      <a href="/feed" hx-get="/feed" hx-target="body" hx-swap="innerHTML">
+      <a href="/app/feed" hx-get="/feed" hx-target="body" hx-swap="innerHTML">
         <li>Feed</li>
       </a>
     </ul>
   </nav>
 </header>
-<form hx-post="/create-post" hx-swap="innerHTML">
+<form hx-post="/app/create-post" hx-swap="innerHTML">
   <textarea
     name="content"
     placeholder="What's on your mind?"
