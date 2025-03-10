@@ -47,6 +47,34 @@ func main() {
 
 	database.Initialize()
 
+	e.HTTPErrorHandler = func(err error, c echo.Context) {
+		code := http.StatusInternalServerError
+		if he, ok := err.(*echo.HTTPError); ok {
+			code = he.Code
+
+			if code == http.StatusUnauthorized {
+
+				message := LoginBoxMessage{
+					IsInvalidAttempt: true,
+					Message:          "Invalid Credentials",
+				}
+
+				c.Render(http.StatusUnauthorized, "index", message)
+			}
+
+			if code == http.StatusNotFound {
+				c.Render(http.StatusNotFound, "404", nil)
+			}
+
+			if code == http.StatusInternalServerError {
+				c.Render(http.StatusInternalServerError, "500", nil)
+			}
+
+		}
+
+		c.HTML(code, fmt.Sprintf("%d", code))
+	}
+
 	e.GET("/", func(c echo.Context) error {
 		return c.Render(200, "index", nil)
 	})
@@ -92,12 +120,31 @@ func main() {
 			return c.Render(200, "register-box", message)
 		}
 
+		account, err := accounts.GetAccountByUsername(username)
+		if err != nil {
+			message := LoginBoxMessage{
+				IsInvalidAttempt: true,
+				Message:          "Failed to create account: " + err.Error(),
+			}
+
+			return c.Render(200, "register-box", message)
+		}
+
+		if account != nil {
+			message := LoginBoxMessage{
+				IsInvalidAttempt: true,
+				Message:          "Username already exists",
+			}
+
+			return c.Render(200, "register-box", message)
+		}
+
 		newAccount := accounts.Account{
 			Username:     username,
 			PasswordHash: password,
 		}
 
-		_, err := accounts.CreateAccount(database.Db, newAccount)
+		err = accounts.CreateAccountHandler(newAccount)
 		if err != nil {
 			message := LoginBoxMessage{
 				IsInvalidAttempt: true,
@@ -115,7 +162,7 @@ func main() {
 		return c.Render(201, "register-account-complete", message)
 	})
 
-	e.GET("/open-delete-modal/:id", func(c echo.Context) error {
+	protected.GET("/open-delete-modal/:id", func(c echo.Context) error {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			return c.String(http.StatusBadRequest, "Invalid ID format")
@@ -126,7 +173,7 @@ func main() {
 		return c.Render(200, "delete-modal", post)
 	})
 
-	e.GET("/open-edit-modal/:id", func(c echo.Context) error {
+	protected.GET("/open-edit-modal/:id", func(c echo.Context) error {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			return c.String(http.StatusBadRequest, "Invalid ID format")
@@ -137,7 +184,7 @@ func main() {
 		return c.Render(200, "edit-modal", post)
 	})
 
-	e.PATCH("/posts/:id", func(c echo.Context) error {
+	protected.PATCH("/posts/:id", func(c echo.Context) error {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			return c.String(http.StatusBadRequest, "Invalid ID format")
@@ -153,7 +200,7 @@ func main() {
 		return c.Render(200, "empty-div", nil)
 	})
 
-	e.DELETE("/posts/:id", func(c echo.Context) error {
+	protected.DELETE("/posts/:id", func(c echo.Context) error {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			return c.String(http.StatusBadRequest, "Invalid ID format")
@@ -175,7 +222,7 @@ func main() {
 		return c.Render(200, "empty-div", nil)
 	})
 
-	e.POST("/create-post", func(c echo.Context) error {
+	protected.POST("/create-post", func(c echo.Context) error {
 		newPost := posts.Post{
 			Content:   c.FormValue("content"),
 			CreatedAt: time.Now().Format(time.RFC3339),
@@ -191,12 +238,19 @@ func main() {
 		return c.Render(201, "created-post-successfully", createdPost)
 	})
 
-	e.GET("/search", func(c echo.Context) error {
+	protected.GET("/search", func(c echo.Context) error {
+
+		accountId := c.Get("accountId").(float64)
+
+		if c.QueryParam("search") == "" {
+			return c.Render(200, "feed", nil)
+		}
+
 		params := posts.QueryParams{
-			AccountId:  1,                      // Make sure to pass the current user's account ID
-			SearchText: c.QueryParam("search"), // This matches the input name="search" from HTMX
-			PageSize:   10,                     // Add your desired page size
-			PageNumber: 1,                      // Start with first page
+			AccountId:  accountId,
+			SearchText: c.QueryParam("search"),
+			PageSize:   c.Get("pageSize").(int64),
+			PageNumber: c.Get("pageNumber").(int64),
 		}
 
 		posts := posts.GetPosts(database.Db, params)
@@ -204,7 +258,7 @@ func main() {
 		return c.Render(200, "feed", posts)
 	})
 
-	e.GET("/edit/:id", func(c echo.Context) error {
+	protected.GET("/edit/:id", func(c echo.Context) error {
 		return c.Render(200, "edit-post", nil)
 	})
 

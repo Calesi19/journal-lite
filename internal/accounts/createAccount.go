@@ -1,7 +1,6 @@
 package accounts
 
 import (
-	"database/sql"
 	"journal-lite/internal/database"
 	"time"
 
@@ -13,18 +12,12 @@ type Account struct {
 	PasswordHash string `json:"password_hash"`
 }
 
-func CreateAccount(db *sql.DB, newAccount Account) (int64, error) {
-
-	count, err := RetrieveCountOfAccountsWithUsername(newAccount.Username)
-
-	if count != 0 {
-		return 0, nil
-	}
+func CreateAccountHandler(newAccount Account) error {
 
 	hashedPassword, err := HashPassword(newAccount.PasswordHash)
 
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	newAccount.PasswordHash = hashedPassword
@@ -32,21 +25,10 @@ func CreateAccount(db *sql.DB, newAccount Account) (int64, error) {
 	err = AddAccountToDatabase(newAccount)
 
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return 1, nil
-}
-
-func RetrieveCountOfAccountsWithUsername(username string) (int, error) {
-	var count int
-	err := database.Db.QueryRow("SELECT COUNT(*) FROM accounts WHERE username = ?", username).
-		Scan(&count)
-	if err != nil {
-		return 0, err
-	}
-
-	return count, nil
+	return nil
 }
 
 func HashPassword(password string) (string, error) {
@@ -70,4 +52,15 @@ func AddAccountToDatabase(newAccount Account) error {
 		return err
 	}
 	return nil
+}
+
+func GetAccountByUsername(username string) (*Account, error) {
+	var account Account
+	err := database.Db.QueryRow("SELECT * FROM accounts WHERE username = ?", username).
+		Scan(&account.Username, &account.PasswordHash)
+	if err != nil {
+		return nil, err
+	}
+
+	return &account, nil
 }
